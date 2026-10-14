@@ -15,17 +15,28 @@ def calculate_expression(expression):
         ast.UAdd: operator.pos,
     }
 
+    functions = {
+        "sin": lambda x: Calc_Sin(x),
+        "cos": lambda x: calc_Cos(x),
+        "tan": lambda x: calc_Tan(x),
+    }
+
     def calculate(node):
         if isinstance(node, ast.Constant) and type(node.value) in (int, float):
             return node.value
 
         if isinstance(node, ast.BinOp) and type(node.op) in operators:
-            left = calculate(node.left)
-            right = calculate(node.right)
-            return operators[type(node.op)](left, right)
+            return operators[type(node.op)](
+                calculate(node.left),
+                calculate(node.right)
+            )
 
         if isinstance(node, ast.UnaryOp) and type(node.op) in operators:
             return operators[type(node.op)](calculate(node.operand))
+
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+            if node.func.id in functions and len(node.args) == 1:
+                return functions[node.func.id](calculate(node.args[0]))
 
         raise ValueError("Invalid expression")
 
@@ -48,57 +59,16 @@ def add_symbol(symbol):  # Add symbols to display
     entry.config(state="readonly")
 
 
-def Calc_Sin(number):  # Perforn sin operation
-    return math.sin(number)
+def Calc_Sin(number):  # Perform sin operation
+    return math.sin(math.radians(number))
 
 
-def calc_Cos(number):  # Perforn Cosine operation
-    return math.cos(number)
+def calc_Cos(number):  # Perform Cosine operation
+    return math.cos(math.radians(number))
 
 
-def calc_Tan(number):  # Perforn tangent operation
-    return math.tan(number)
-
-
-def calc_Exponent(number, exponent):
-    total = 0
-    index = 0
-
-    while index < exponent:
-        total *= number
-        index += 1
-
-    return total
-
- # Perform simple addition,substraction,multiplication and divition
-
-
-def calc_Multiply(*numbers):
-    total = 0
-    for index in numbers:
-        total *= index
-    return total
-
-
-def calc_Addition(*numbers):
-    total = 0
-    for index in numbers:
-        total += index
-    return total
-
-
-def calc_Divition(*numbers):
-    total = 0
-    for index in numbers:
-        total /= index
-    return total
-
-
-def calc_Substraction(*numbers):
-    total = 0
-    for index in numbers:
-        total -= index
-    return total
+def calc_Tan(number):  # Perform tangent operation
+    return math.tan(math.radians(number))
 
 # Calculate final answer from the entry textArea
 
@@ -120,6 +90,20 @@ def CAlculate_Answer():
         entryAnswer.config(state="readonly")
 
 
+def Clear_Entry():
+    entry.config(state="normal")
+    entry.delete(0, tk.END)
+    entryAnswer.config(state="normal")
+    entryAnswer.delete(0, tk.END)
+    entryAnswer.config(state="readonly")
+
+
+def calculate_on_enter(event):
+    if event.widget is entry:
+        CAlculate_Answer()
+    return "break"
+
+
 # 1. Create the main window
 DisplayArea = tk.Tk()
 DisplayArea.title("Calculator")
@@ -133,48 +117,63 @@ entryAnswer = tk.Entry(DisplayArea, width=16, font=("Arial", 24))
 entryAnswer.grid(row=2, column=0, columnspan=4, padx=10, pady=5, sticky="ew")
 
 # Buttons
-button_Tangent = tk.Button(DisplayArea, text="Tan")
-button_Sin = tk.Button(DisplayArea, text="Sin")
-button_Cos = tk.Button(DisplayArea, text="Cos")
-button_log = tk.Button(DisplayArea, text="Log")
+button_Tangent = tk.Button(DisplayArea, text="Tan", font=("Arial", 15),
+                           command=lambda: add_symbol("tan("))
+button_Sin = tk.Button(DisplayArea, text="Sin", font=("Arial", 15),
+                       command=lambda: add_symbol("sin("))
+button_Cos = tk.Button(DisplayArea, font=("Arial", 15), text="Cos",
+                       command=lambda: add_symbol("cos("))
+button_log = tk.Button(DisplayArea, text="Log(")
 button_Exponent = tk.Button(DisplayArea, text="x²")
 
 button_Substract = tk.Button(
-    DisplayArea, text="-", command=lambda: add_symbol("-"))
-button_Multiply = tk.Button(DisplayArea, text="x",
+    DisplayArea, text="-", font=("Arial", 15), command=lambda: add_symbol("-"))
+button_Multiply = tk.Button(DisplayArea, text="x", font=("Arial", 15),
                             command=lambda: add_symbol("*"))
-button_Divide = tk.Button(DisplayArea, text="÷",
+button_Divide = tk.Button(DisplayArea, text="÷", font=("Arial", 15),
                           command=lambda: add_symbol("/"))
-button_Add = tk.Button(DisplayArea, text="+", command=lambda: add_symbol("+"))
+button_Add = tk.Button(DisplayArea, text="+",
+                       font=("Arial", 15), command=lambda: add_symbol("+"))
 
 # Numbers
-button_one = tk.Button(DisplayArea, text="1", command=lambda: start(1))
-button_Two = tk.Button(DisplayArea, text="2", command=lambda: start(2))
-button_Three = tk.Button(DisplayArea, text="3", command=lambda: start(3))
-button_Four = tk.Button(DisplayArea, text="4", command=lambda: start(4))
-button_Five = tk.Button(DisplayArea, text="5", command=lambda: start(5))
-button_Six = tk.Button(DisplayArea, text="6", command=lambda: start(6))
-button_Seven = tk.Button(DisplayArea, text="7", command=lambda: start(7))
-button_Eight = tk.Button(DisplayArea, text="8", command=lambda: start(8))
-button_Nine = tk.Button(DisplayArea, text="9", command=lambda: start(9))
-button_Zero = tk.Button(DisplayArea, text="0", command=lambda: start(0))
+button_one = tk.Button(DisplayArea, text="1", font=(
+    "Arial", 15), command=lambda: start(1))
+button_Two = tk.Button(DisplayArea, text="2", font=(
+    "Arial", 15), command=lambda: start(2))
+button_Three = tk.Button(DisplayArea, text="3", font=(
+    "Arial", 15), command=lambda: start(3))
+button_Four = tk.Button(DisplayArea, text="4", font=(
+    "Arial", 15), command=lambda: start(4))
+button_Five = tk.Button(DisplayArea, text="5", font=(
+    "Arial", 15), command=lambda: start(5))
+button_Six = tk.Button(DisplayArea, text="6", font=(
+    "Arial", 15), command=lambda: start(6))
+button_Seven = tk.Button(DisplayArea, text="7", font=(
+    "Arial", 15), command=lambda: start(7))
+button_Eight = tk.Button(DisplayArea, text="8", font=(
+    "Arial", 15), command=lambda: start(8))
+button_Nine = tk.Button(DisplayArea, text="9", font=(
+    "Arial", 15), command=lambda: start(9))
+button_Zero = tk.Button(DisplayArea, text="0", font=(
+    "Arial", 15), command=lambda: start(0))
+button_Clear = tk.Button(DisplayArea, text="Clear",
+                         command=Clear_Entry)
 
-button_Commar = tk.Button(DisplayArea, text=".",
+button_Commar = tk.Button(DisplayArea, text=".", font=("Arial", 20),
                           command=lambda: add_symbol("."))
-button_Asin = tk.Button(DisplayArea, text="sin`")
-button_ACos = tk.Button(DisplayArea, text="Cos `")
-button_ATan = tk.Button(DisplayArea, text="Tan `")
 button_Open_Bracket = tk.Button(
-    DisplayArea, text="(", command=lambda: add_symbol("("))
+    DisplayArea, text="(", font=("Arial", 15), command=lambda: add_symbol("("))
 button_Close_Bracket = tk.Button(
-    DisplayArea, text=")", command=lambda: add_symbol(")"))
+    DisplayArea, text=")", font=("Arial", 15), command=lambda: add_symbol(")"))
 
 # Button to display the final answer.
 Final_answer = tk.Button(
     DisplayArea,
-    text="ANS",
+    text="ANS (=)", font=("Arial", 15),
     command=CAlculate_Answer
 )
+entry.bind("<Return>", calculate_on_enter)
+entry.bind("<KP_Enter>", calculate_on_enter)
 # Row 3
 button_Tangent.grid(row=3, column=0, padx=5, pady=5, sticky="nsew")
 button_Sin.grid(row=3, column=1, padx=5, pady=5, sticky="nsew")
@@ -182,10 +181,7 @@ button_Cos.grid(row=3, column=2, padx=5, pady=5, sticky="nsew")
 Final_answer.grid(row=3, column=3, padx=5, pady=5, sticky="nsew")
 
 # Row 4
-button_Asin.grid(row=4, column=0, padx=5, pady=5, sticky="nsew")
-button_ACos.grid(row=4, column=1, padx=5, pady=5, sticky="nsew")
-button_ATan.grid(row=4, column=2, padx=5, pady=5, sticky="nsew")
-button_Exponent.grid(row=4, column=3, padx=5, pady=5, sticky="nsew")
+# button_Exponent.grid(row=4, column=3, padx=5, pady=5, sticky="nsew")
 # Row 5
 button_one.grid(row=5, column=0, padx=5, pady=5, sticky="nsew")
 button_Two.grid(row=5, column=1, padx=5, pady=5, sticky="nsew")
@@ -208,6 +204,8 @@ button_Zero.grid(row=7, column=0, padx=5, pady=5, sticky="nsew")
 button_Open_Bracket.grid(row=7, column=1, padx=5, pady=5, sticky="nsew")
 button_Close_Bracket.grid(row=7, column=2, padx=5, pady=5, sticky="nsew")
 button_Substract.grid(row=7, column=3, padx=5, pady=5, sticky="nsew")
+button_Clear.grid(row=8, column=3, padx=5, pady=5, sticky="nsew")
+button_Commar.grid(row=8, column=2, padx=5, pady=5, sticky="nsew")
 
 for column in range(4):
     DisplayArea.grid_columnconfigure(column, weight=1, uniform="buttons")
