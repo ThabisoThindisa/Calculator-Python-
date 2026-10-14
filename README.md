@@ -2,4 +2,4 @@
 A calculator using a User Interfase
 
 ### SetUp and compiling
-py Calculator.py
+Type in command line: py Calculator.py
